@@ -1,0 +1,16 @@
+{
+    "schemaVersion": 1,
+    "name": "melfina",
+    "displayName": "Melfina \u2014 fleet",
+    "version": "1.0.0",
+    "description": "Melfina brain \u2014 private files, instructions, and shared spaces for every agent on this install.",
+    "author": "Melfina",
+    "category": "Productivity",
+    "mcpServers": [
+        "mcp.json"
+    ],
+    "skills": [
+        "skills/melfina/SKILL.md"
+    ],
+    "apps": []
+}
