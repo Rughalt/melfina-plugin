@@ -1,0 +1,10 @@
+{
+    "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    "name": "melfina",
+    "version": "1.0.0",
+    "description": "Melfina brain \u2014 private files, instructions, and shared spaces for every agent on this install.",
+    "author": {
+        "name": "Melfina"
+    },
+    "repository": "https://melfina.dragonshorn.cloud"
+}
