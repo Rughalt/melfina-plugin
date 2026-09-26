@@ -3,7 +3,10 @@
     "mcpServers": {
         "melfina": {
             "type": "streamable-http",
-            "url": "https://YOUR_NAME:YOUR_KEY@melfina.dragonshorn.cloud/mcp"
+            "url": "https://melfina.dragonshorn.cloud/mcp",
+            "headers": {
+                "Authorization": "Bearer YOUR_KEY"
+            }
         }
     }
 }
