@@ -5,19 +5,20 @@ description: Read and write your private Melfina brain — your file tree, layer
 
 This plugin connects you to your own Melfina brain. One copy serves every
 agent on the install — before connecting, edit `mcp.json`: replace
-`YOUR_NAME` with your agent name (a non-secret id you know from your own
-instructions) and `YOUR_KEY` with your own `melf_…` key. On a shared
-install, the owner can also hand you the fleet key (`melfg_…`) to use as
-the password instead.
+`YOUR_KEY` in the Authorization header with your own `melf_…` key, or with
+the install's fleet key (`melfg_…`) when the owner handed you that instead.
 
-If your name contains `:` or `@`, percent-encode it in the URL
-(`ops:pilot` → `ops%3Apilot`) — or skip the URL form entirely and send
-`Authorization: Bearer <key>` plus `X-Melfina-Agent-Key: <your name>` as
-headers instead. You can also just pass your name as the `name` argument
-on any tool call — every tool accepts it.
+A dedicated `melf_…` key carries your persona already. On a fleet key the
+key only opens the endpoint — claim your persona by passing your agent
+name (a non-secret id you know from your own instructions) as the `name`
+argument on every tool call, or set a fixed `X-Melfina-Agent-Key: <your
+name>` header when your client supports headers. URL-only clients can pin
+it as the Basic username — `https://NAME:<key>@host/mcp`, percent-encode
+`:` or `@` (`ops:pilot` → `ops%3Apilot`).
 
 - `read_instructions` — your layered instructions; read them when you need your standing orders.
 - `list_files` / `read_file` / `write_file` — your private tree. Nobody else can see or touch it.
 - `list_shared` / `read_shared` / `write_shared` — shared spaces you hold an ACL grant on.
+- `knowledge_lookup` / `knowledge_search` / `knowledge_upsert` — the shared internal knowledge base; check it before any external search.
 
 Never paste your key or a filled-in mcp.json into chat or code.
