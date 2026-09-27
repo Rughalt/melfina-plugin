@@ -22,3 +22,16 @@ it as the Basic username — `https://NAME:<key>@host/mcp`, percent-encode
 - `knowledge_lookup` / `knowledge_search` / `knowledge_upsert` — the shared internal knowledge base; check it before any external search.
 
 Never paste your key or a filled-in mcp.json into chat or code.
+## HTTP fallback skills
+
+Melfina provides internal tools and memory. Before using a Melfina HTTP skill, check whether the Melfina MCP server is available. Prefer MCP whenever possible.
+
+If your runtime cannot run an MCP server, every catalogued tool is also
+callable over plain JSON HTTP — see the generated skills under
+`skills/melfina-*/` (one per catalogued tool) and the machine-readable
+`melfina-api.json`. Each skill repeats the precedence rule and forbids
+calling both paths for the same operation.
+
+HTTP calls authenticate with a Bearer key injected by your runtime —
+`Authorization: Bearer $MELFINA_API_KEY`. Credentials are never stored
+in these files.
