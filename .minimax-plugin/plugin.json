@@ -10,7 +10,26 @@
         "mcp.json"
     ],
     "skills": [
-        "skills/melfina/SKILL.md"
+        "skills/melfina/SKILL.md",
+        "skills/melfina-list-files/SKILL.md",
+        "skills/melfina-read-file/SKILL.md",
+        "skills/melfina-write-file/SKILL.md",
+        "skills/melfina-read-instructions/SKILL.md",
+        "skills/melfina-list-shared/SKILL.md",
+        "skills/melfina-read-shared/SKILL.md",
+        "skills/melfina-write-shared/SKILL.md",
+        "skills/melfina-read-persona/SKILL.md",
+        "skills/melfina-update-persona/SKILL.md",
+        "skills/melfina-list-agents/SKILL.md",
+        "skills/melfina-list-message-recipients/SKILL.md",
+        "skills/melfina-send-message/SKILL.md",
+        "skills/melfina-list-inbox/SKILL.md",
+        "skills/melfina-list-sent-messages/SKILL.md",
+        "skills/melfina-read-message/SKILL.md",
+        "skills/melfina-ack-message/SKILL.md",
+        "skills/melfina-knowledge-lookup/SKILL.md",
+        "skills/melfina-knowledge-search/SKILL.md",
+        "skills/melfina-knowledge-upsert/SKILL.md"
     ],
     "apps": []
 }
