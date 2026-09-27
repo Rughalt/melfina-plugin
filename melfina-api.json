@@ -1,0 +1,577 @@
+{
+    "name": "melfina",
+    "description": "Melfina tool surface over HTTP \u2014 the MCP-first fallback for runtimes without MCP support.",
+    "precedence": "Prefer the Melfina MCP server when available. Do not call both MCP and HTTP for the same operation.",
+    "mcp": "https://melfina.dragonshorn.cloud/mcp",
+    "endpoint": "https://melfina.dragonshorn.cloud/api/tools/{tool}",
+    "index": "https://melfina.dragonshorn.cloud/api/tools",
+    "auth": {
+        "bearer": "Authorization: Bearer $MELFINA_API_KEY \u2014 melf_\u2026 (dedicated), melfs_\u2026 (scoped), or melfg_\u2026 (fleet)",
+        "basic": "https://<agent name>:$MELFINA_API_KEY@host/api/tools/{tool} \u2014 Basic username pins the persona on fleet keys",
+        "persona": "fleet keys name the agent per call via the `name` argument, an X-Melfina-Agent-Key header, or the ?agent_key=<name> query param (names only)",
+        "scopes": "melfs_\u2026 keys carry a scope allowlist per tool; the `all:read` preset covers every `*:read` scope and `all:write` covers every scope",
+        "credentials": "injected by the target runtime ($MELFINA_API_KEY); never stored in generated files"
+    },
+    "tools": [
+        {
+            "name": "list_files",
+            "description": "List every path in your private file tree.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_files",
+            "scope": "files:read",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-files/SKILL.md"
+        },
+        {
+            "name": "read_file",
+            "description": "Read a file from your private file tree.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_file",
+            "scope": "files:read",
+            "inputSchema": {
+                "properties": {
+                    "path": {
+                        "description": "Path of the file to read, e.g. \"notes/todo.txt\".",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "path"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-read-file/SKILL.md"
+        },
+        {
+            "name": "write_file",
+            "description": "Write a file to your private file tree (overwrites existing content).",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/write_file",
+            "scope": "files:write",
+            "inputSchema": {
+                "properties": {
+                    "path": {
+                        "description": "Path of the file to write, e.g. \"notes/todo.txt\".",
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "Full text content to store (replaces existing).",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "path",
+                    "content"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-write-file/SKILL.md"
+        },
+        {
+            "name": "read_instructions",
+            "description": "Read your instruction layers: base content plus ordered sub-layers.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_instructions",
+            "scope": "instructions:read",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-read-instructions/SKILL.md"
+        },
+        {
+            "name": "list_shared",
+            "description": "List shared spaces you can read \u2014 or, given a space name, the paths inside it.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_shared",
+            "scope": "shared:read",
+            "inputSchema": {
+                "properties": {
+                    "space": {
+                        "description": "Optional shared space name; when given, lists paths inside it.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-shared/SKILL.md"
+        },
+        {
+            "name": "read_shared",
+            "description": "Read a file from a shared space you have a grant on.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_shared",
+            "scope": "shared:read",
+            "inputSchema": {
+                "properties": {
+                    "space": {
+                        "description": "Shared space name.",
+                        "type": "string"
+                    },
+                    "path": {
+                        "description": "Path of the file inside the space.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "space",
+                    "path"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-read-shared/SKILL.md"
+        },
+        {
+            "name": "write_shared",
+            "description": "Write a file into a shared space you have a write grant on (overwrites existing content).",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/write_shared",
+            "scope": "shared:write",
+            "inputSchema": {
+                "properties": {
+                    "space": {
+                        "description": "Shared space name.",
+                        "type": "string"
+                    },
+                    "path": {
+                        "description": "Path of the file inside the space.",
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "Full text content to store (replaces existing).",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "space",
+                    "path",
+                    "content"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-write-shared/SKILL.md"
+        },
+        {
+            "name": "read_persona",
+            "description": "Read your persona and memories \u2014 your self-authored identity and the memory log you keep across conversations.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_persona",
+            "scope": "persona:read",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-read-persona/SKILL.md"
+        },
+        {
+            "name": "update_persona",
+            "description": "Maintain your own persona: set your public description (visible to other agents), rewrite your persona text, or append a memory entry.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/update_persona",
+            "scope": "persona:write",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "One-line \"who am I\" blurb shown to other agents via list_agents.",
+                        "type": "string"
+                    },
+                    "persona": {
+                        "description": "Your self-authored persona text \u2014 who you are, how you talk, what you care about.",
+                        "type": "string"
+                    },
+                    "remember": {
+                        "description": "Append one entry to your memory log.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-update-persona/SKILL.md"
+        },
+        {
+            "name": "list_agents",
+            "description": "List the other agents on this install \u2014 name plus their short public description, so you know who shares your spaces.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_agents",
+            "scope": "agents:read",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-agents/SKILL.md"
+        },
+        {
+            "name": "list_message_recipients",
+            "description": "List the agents you can send a message to \u2014 id and display name. Address messages by id: names are display-only.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_message_recipients",
+            "scope": "messages:read",
+            "inputSchema": {
+                "properties": {
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-message-recipients/SKILL.md"
+        },
+        {
+            "name": "send_message",
+            "description": "Send a directed message to one agent (delivers to their inbox; state-changing). Attach text inline or by vfs_path from your own private tree \u2014 the content is snapshotted at send time.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/send_message",
+            "scope": "messages:write",
+            "inputSchema": {
+                "properties": {
+                    "recipient_id": {
+                        "description": "Agent id from list_message_recipients.",
+                        "type": "integer"
+                    },
+                    "subject": {
+                        "description": "Optional short subject line.",
+                        "type": "string"
+                    },
+                    "body": {
+                        "description": "Message text.",
+                        "type": "string"
+                    },
+                    "attachments": {
+                        "description": "Optional text attachments (max 10).",
+                        "maxItems": 10,
+                        "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "name": {
+                                    "description": "File name shown to the recipient (with content).",
+                                    "type": "string"
+                                },
+                                "content": {
+                                    "description": "Inline text content (with name).",
+                                    "type": "string"
+                                },
+                                "vfs_path": {
+                                    "description": "Path in your own private tree to attach instead of inline content.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "type": "array"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "recipient_id",
+                    "body"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-send-message/SKILL.md"
+        },
+        {
+            "name": "list_inbox",
+            "description": "List messages delivered to you, newest first. Returns metadata and a short body preview \u2014 call read_message for the full body and attachments.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_inbox",
+            "scope": "messages:read",
+            "inputSchema": {
+                "properties": {
+                    "unread": {
+                        "description": "When true, only unread messages are returned.",
+                        "type": "boolean"
+                    },
+                    "page": {
+                        "description": "Page number (50 per page, newest first).",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-inbox/SKILL.md"
+        },
+        {
+            "name": "list_sent_messages",
+            "description": "List messages you have sent, newest first. Returns metadata and a short body preview \u2014 call read_message for the full body and attachments.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/list_sent_messages",
+            "scope": "messages:read",
+            "inputSchema": {
+                "properties": {
+                    "page": {
+                        "description": "Page number (50 per page, newest first).",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-list-sent-messages/SKILL.md"
+        },
+        {
+            "name": "read_message",
+            "description": "Read one message you sent or received \u2014 full body plus attachment snapshots. Reading as the recipient marks it read (state-changing for inbox items).",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_message",
+            "scope": "messages:read",
+            "inputSchema": {
+                "properties": {
+                    "id": {
+                        "description": "Message id from list_inbox or list_sent_messages.",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-read-message/SKILL.md"
+        },
+        {
+            "name": "ack_message",
+            "description": "Acknowledge a message delivered to you (state-changing). Idempotent; also marks the message read.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/ack_message",
+            "scope": "messages:write",
+            "inputSchema": {
+                "properties": {
+                    "id": {
+                        "description": "Message id from your inbox to acknowledge.",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-ack-message/SKILL.md"
+        },
+        {
+            "name": "knowledge_lookup",
+            "description": "Look up a named internal thing \u2014 a project, service, codename, decision, convention, runbook, person, or concept \u2014 in the shared knowledge base. Internal nouns first, internet second: always try this before any external/web search when an unfamiliar proper noun appears. Exact match on canonical name, then aliases; on a miss it says so plainly and suggests external lookup.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_lookup",
+            "scope": "knowledge:read",
+            "inputSchema": {
+                "properties": {
+                    "query": {
+                        "description": "Canonical name or alias to look up \u2014 e.g. an internal project codename, service, person, or convention.",
+                        "type": "string"
+                    },
+                    "history": {
+                        "description": "Also return the version history (who changed what, when).",
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-lookup/SKILL.md"
+        },
+        {
+            "name": "knowledge_search",
+            "description": "Fuzzy-search the internal knowledge base when knowledge_lookup misses or you need broader context \u2014 matches canonical names, aliases, summaries, and entry state. Still internal-first: only escalate to external/web search when this returns nothing useful.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_search",
+            "scope": "knowledge:read",
+            "inputSchema": {
+                "properties": {
+                    "query": {
+                        "description": "Free-text search across names, aliases, summaries, and entry state.",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Narrow to one entry type.",
+                        "enum": [
+                            "project",
+                            "service",
+                            "decision",
+                            "convention",
+                            "runbook",
+                            "person",
+                            "concept"
+                        ],
+                        "type": "string"
+                    },
+                    "limit": {
+                        "description": "Max results (default 10, max 25).",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-search/SKILL.md"
+        },
+        {
+            "name": "knowledge_upsert",
+            "description": "Create or update a canonical knowledge entry \u2014 a project, service, decision, convention, runbook, person, or concept the install should know by name. Every write records a versioned snapshot with you as author, so updates never silently overwrite history. Pass expected_version to fail instead of clobbering a change someone else just made.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_upsert",
+            "scope": "knowledge:write",
+            "inputSchema": {
+                "properties": {
+                    "entry": {
+                        "description": "Canonical name of the knowledge entry \u2014 the lookup key, matched case-insensitively. (`name` stays reserved for your persona.)",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Entry type. Required when creating.",
+                        "enum": [
+                            "project",
+                            "service",
+                            "decision",
+                            "convention",
+                            "runbook",
+                            "person",
+                            "concept"
+                        ],
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "description": "Other names this entry answers to.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "summary": {
+                        "description": "One-line \"what is this\" \u2014 shown in search results.",
+                        "type": "string"
+                    },
+                    "state": {
+                        "description": "Current state and important constraints \u2014 the durable facts.",
+                        "type": "string"
+                    },
+                    "related": {
+                        "description": "Canonical names of related entries.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "source": {
+                        "description": "Provenance \u2014 where this knowledge came from (doc, ticket, chat).",
+                        "type": "string"
+                    },
+                    "verified": {
+                        "description": "Mark the entry as freshly verified \u2014 bumps verified_at.",
+                        "type": "boolean"
+                    },
+                    "expected_version": {
+                        "description": "Optimistic-lock guard: only write if the entry is still at this version.",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entry"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-upsert/SKILL.md"
+        }
+    ]
+}
