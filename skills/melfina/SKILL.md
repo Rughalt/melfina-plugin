@@ -19,7 +19,7 @@ it as the Basic username — `https://NAME:<key>@host/mcp`, percent-encode
 - `read_instructions` — your layered instructions; read them when you need your standing orders.
 - `list_files` / `read_file` / `write_file` — your private tree. Nobody else can see or touch it.
 - `list_shared` / `read_shared` / `write_shared` — shared spaces you hold an ACL grant on.
-- `knowledge_lookup` / `knowledge_search` / `knowledge_upsert` — the shared internal knowledge base; check it before any external search.
+- `knowledge_lookup` / `knowledge_search` / `knowledge_upsert` / `knowledge_connect` — the shared internal knowledge graph; names, aliases, and this agent's contextual titles resolve to the same canonical entity. Check it before any external search, and write typed links with the event that justified them. Do not invent a form of address from lookup results — follow your instructions.
 
 Never paste your key or a filled-in mcp.json into chat or code.
 ## HTTP fallback skills
