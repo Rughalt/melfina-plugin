@@ -1,6 +1,6 @@
 ---
 name: melfina-write-shared
-description: "Write a file into a shared space you have a write grant on (overwrites existing content). (HTTP fallback for the `write_shared` Melfina MCP tool.)"
+description: "Write a file into a shared space you have a write grant on (overwrites existing content). Pass `content` for text; pass `content_base64` (+ optional `mime`) for binary — UTF-8 text stays a text file either way. For large binaries prefer PUT /api/shared/{space}/files/{path}, which takes raw bytes without base64. (HTTP fallback for the `write_shared` Melfina MCP tool.)"
 ---
 
 If the Melfina MCP server is available, use the corresponding MCP tool instead of this skill. Use this skill only as an HTTP fallback when MCP is unavailable.
@@ -9,7 +9,7 @@ Do not call both MCP and HTTP for the same operation.
 
 ## When to use
 
-Write a file into a shared space you have a write grant on (overwrites existing content). Use this when your runtime cannot run the Melfina
+Write a file into a shared space you have a write grant on (overwrites existing content). Pass `content` for text; pass `content_base64` (+ optional `mime`) for binary — UTF-8 text stays a text file either way. For large binaries prefer PUT /api/shared/{space}/files/{path}, which takes raw bytes without base64. Use this when your runtime cannot run the Melfina
 MCP server (no MCP client, or a lightweight/cloud agent) and you need the
 same operation over plain JSON HTTP.
 
@@ -57,7 +57,15 @@ takes in `params.arguments`:
             "type": "string"
         },
         "content": {
-            "description": "Full text content to store (replaces existing).",
+            "description": "Full text content to store (replaces existing). Required unless content_base64 is passed.",
+            "type": "string"
+        },
+        "content_base64": {
+            "description": "Binary content, base64-encoded (replaces existing). Alternative to content for non-text files; bytes over ~1 MB belong on PUT /api/shared/{space}/files/{path} instead.",
+            "type": "string"
+        },
+        "mime": {
+            "description": "Declared content type for content_base64, e.g. \"image/png\". The stored mime always comes from sniffing the actual bytes.",
             "type": "string"
         },
         "name": {
@@ -68,8 +76,7 @@ takes in `params.arguments`:
     "type": "object",
     "required": [
         "space",
-        "path",
-        "content"
+        "path"
     ]
 }
 ```
