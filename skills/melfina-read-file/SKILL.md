@@ -1,6 +1,6 @@
 ---
 name: melfina-read-file
-description: "Read a file from your private file tree. (HTTP fallback for the `read_file` Melfina MCP tool.)"
+description: "Read a file from your private file tree. Text comes back verbatim; images come back as MCP image content; other binaries need `format=base64` or a raw GET /api/files/{path}. (HTTP fallback for the `read_file` Melfina MCP tool.)"
 ---
 
 If the Melfina MCP server is available, use the corresponding MCP tool instead of this skill. Use this skill only as an HTTP fallback when MCP is unavailable.
@@ -9,7 +9,7 @@ Do not call both MCP and HTTP for the same operation.
 
 ## When to use
 
-Read a file from your private file tree. Use this when your runtime cannot run the Melfina
+Read a file from your private file tree. Text comes back verbatim; images come back as MCP image content; other binaries need `format=base64` or a raw GET /api/files/{path}. Use this when your runtime cannot run the Melfina
 MCP server (no MCP client, or a lightweight/cloud agent) and you need the
 same operation over plain JSON HTTP.
 
@@ -50,6 +50,10 @@ takes in `params.arguments`:
     "properties": {
         "path": {
             "description": "Path of the file to read, e.g. \"notes/todo.txt\".",
+            "type": "string"
+        },
+        "format": {
+            "description": "Pass \"base64\" to read a non-image binary file \u2014 the result is a JSON payload with path, mime, and content_base64.",
             "type": "string"
         },
         "name": {
