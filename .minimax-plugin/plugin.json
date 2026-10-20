@@ -13,7 +13,9 @@
         "skills/melfina/SKILL.md",
         "skills/melfina-list-files/SKILL.md",
         "skills/melfina-read-file/SKILL.md",
+        "skills/melfina-read-file-binary/SKILL.md",
         "skills/melfina-write-file/SKILL.md",
+        "skills/melfina-write-file-binary/SKILL.md",
         "skills/melfina-read-instructions/SKILL.md",
         "skills/melfina-list-shared/SKILL.md",
         "skills/melfina-read-shared/SKILL.md",
@@ -29,7 +31,10 @@
         "skills/melfina-ack-message/SKILL.md",
         "skills/melfina-knowledge-lookup/SKILL.md",
         "skills/melfina-knowledge-search/SKILL.md",
-        "skills/melfina-knowledge-upsert/SKILL.md"
+        "skills/melfina-knowledge-upsert/SKILL.md",
+        "skills/melfina-knowledge-connect/SKILL.md",
+        "skills/melfina-knowledge-add-alias/SKILL.md",
+        "skills/melfina-knowledge-link-persona/SKILL.md"
     ],
     "apps": []
 }
