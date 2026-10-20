@@ -3,8 +3,10 @@
     "description": "Melfina tool surface over HTTP \u2014 the MCP-first fallback for runtimes without MCP support.",
     "precedence": "Prefer the Melfina MCP server when available. Do not call both MCP and HTTP for the same operation.",
     "mcp": "https://melfina.dragonshorn.cloud/mcp",
+    "base": "https://melfina.dragonshorn.cloud",
     "endpoint": "https://melfina.dragonshorn.cloud/api/tools/{tool}",
     "index": "https://melfina.dragonshorn.cloud/api/tools",
+    "script": "scripts/melfina-call.mjs \u2014 `node scripts/melfina-call.mjs call <tool> '<args-json>'` (single-skill packages only)",
     "auth": {
         "bearer": "Authorization: Bearer $MELFINA_API_KEY \u2014 melf_\u2026 (dedicated), melfs_\u2026 (scoped), or melfg_\u2026 (fleet)",
         "basic": "https://<agent name>:$MELFINA_API_KEY@host/api/tools/{tool} \u2014 Basic username pins the persona on fleet keys",
@@ -33,13 +35,17 @@
         },
         {
             "name": "read_file",
-            "description": "Read a file from your private file tree.",
+            "description": "Read a file from your private file tree. Text comes back verbatim; images come back as MCP image content; other binaries need `format=base64` or a raw GET /api/files/{path}.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_file",
             "scope": "files:read",
             "inputSchema": {
                 "properties": {
                     "path": {
                         "description": "Path of the file to read, e.g. \"notes/todo.txt\".",
+                        "type": "string"
+                    },
+                    "format": {
+                        "description": "Pass \"base64\" to read a non-image binary file \u2014 the result is a JSON payload with path, mime, and content_base64.",
                         "type": "string"
                     },
                     "name": {
@@ -57,8 +63,33 @@
             "skill": "skills/melfina-read-file/SKILL.md"
         },
         {
+            "name": "read_file_binary",
+            "description": "Read a binary file from your private file tree. Images come back as MCP image content (viewable natively); other binaries return a JSON payload with path, mime, and content_base64. For large downloads prefer `GET /api/files/{path}` \u2014 raw bytes, no base64. Text files belong on `read_file`.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_file_binary",
+            "scope": "files:read",
+            "inputSchema": {
+                "properties": {
+                    "path": {
+                        "description": "Path of the binary file to read, e.g. \"img/logo.png\".",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "path"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-read-file-binary/SKILL.md"
+        },
+        {
             "name": "write_file",
-            "description": "Write a file to your private file tree (overwrites existing content).",
+            "description": "Write a file to your private file tree (overwrites existing content). Pass `content` for text; pass `content_base64` (+ optional `mime`) for binary \u2014 UTF-8 text stays a text file either way. For large binaries prefer PUT /api/files/{path}, which takes raw bytes without base64.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/write_file",
             "scope": "files:write",
             "inputSchema": {
@@ -68,7 +99,48 @@
                         "type": "string"
                     },
                     "content": {
-                        "description": "Full text content to store (replaces existing).",
+                        "description": "Full text content to store (replaces existing). Required unless content_base64 is passed.",
+                        "type": "string"
+                    },
+                    "content_base64": {
+                        "description": "Binary content, base64-encoded (replaces existing). Alternative to content for non-text files; bytes over ~1 MB belong on PUT /api/files/{path} instead.",
+                        "type": "string"
+                    },
+                    "mime": {
+                        "description": "Declared content type for content_base64, e.g. \"image/png\". The stored mime always comes from sniffing the actual bytes.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "path"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "text",
+            "skill": "skills/melfina-write-file/SKILL.md"
+        },
+        {
+            "name": "write_file_binary",
+            "description": "Write a binary file (image, PDF, any non-text bytes) to your private file tree. Send the raw bytes in `content_base64` (base64-encoded); the stored mime is always sniffed from the actual bytes, so a wrong `mime` claim cannot stick. UTF-8 text written this way still lands as a normal text file. For payloads over ~1 MB prefer `PUT /api/files/{path}` \u2014 raw bytes, no base64 overhead.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/write_file_binary",
+            "scope": "files:write",
+            "inputSchema": {
+                "properties": {
+                    "path": {
+                        "description": "Path of the file to write, e.g. \"img/logo.png\".",
+                        "type": "string"
+                    },
+                    "content_base64": {
+                        "description": "Raw file bytes, base64-encoded (replaces existing). Bytes over ~1 MB belong on PUT /api/files/{path} instead.",
+                        "type": "string"
+                    },
+                    "mime": {
+                        "description": "Declared content type, e.g. \"image/png\". The stored mime always comes from sniffing the actual bytes.",
                         "type": "string"
                     },
                     "name": {
@@ -79,12 +151,12 @@
                 "type": "object",
                 "required": [
                     "path",
-                    "content"
+                    "content_base64"
                 ]
             },
             "outputSchema": null,
             "resultType": "text",
-            "skill": "skills/melfina-write-file/SKILL.md"
+            "skill": "skills/melfina-write-file-binary/SKILL.md"
         },
         {
             "name": "read_instructions",
@@ -128,7 +200,7 @@
         },
         {
             "name": "read_shared",
-            "description": "Read a file from a shared space you have a grant on.",
+            "description": "Read a file from a shared space you have a grant on. Text comes back verbatim; images come back as MCP image content; other binaries need `format=base64` or a raw GET /api/shared/{space}/files/{path}.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/read_shared",
             "scope": "shared:read",
             "inputSchema": {
@@ -139,6 +211,10 @@
                     },
                     "path": {
                         "description": "Path of the file inside the space.",
+                        "type": "string"
+                    },
+                    "format": {
+                        "description": "Pass \"base64\" to read a non-image binary file \u2014 the result is a JSON payload with path, mime, and content_base64.",
                         "type": "string"
                     },
                     "name": {
@@ -158,7 +234,7 @@
         },
         {
             "name": "write_shared",
-            "description": "Write a file into a shared space you have a write grant on (overwrites existing content).",
+            "description": "Write a file into a shared space you have a write grant on (overwrites existing content). Pass `content` for text; pass `content_base64` (+ optional `mime`) for binary \u2014 UTF-8 text stays a text file either way. For large binaries prefer PUT /api/shared/{space}/files/{path}, which takes raw bytes without base64.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/write_shared",
             "scope": "shared:write",
             "inputSchema": {
@@ -172,7 +248,15 @@
                         "type": "string"
                     },
                     "content": {
-                        "description": "Full text content to store (replaces existing).",
+                        "description": "Full text content to store (replaces existing). Required unless content_base64 is passed.",
+                        "type": "string"
+                    },
+                    "content_base64": {
+                        "description": "Binary content, base64-encoded (replaces existing). Alternative to content for non-text files; bytes over ~1 MB belong on PUT /api/shared/{space}/files/{path} instead.",
+                        "type": "string"
+                    },
+                    "mime": {
+                        "description": "Declared content type for content_base64, e.g. \"image/png\". The stored mime always comes from sniffing the actual bytes.",
                         "type": "string"
                     },
                     "name": {
@@ -183,8 +267,7 @@
                 "type": "object",
                 "required": [
                     "space",
-                    "path",
-                    "content"
+                    "path"
                 ]
             },
             "outputSchema": null,
@@ -432,18 +515,37 @@
         },
         {
             "name": "knowledge_lookup",
-            "description": "Look up a named internal thing \u2014 a project, service, codename, decision, convention, runbook, person, or concept \u2014 in the shared knowledge base. Internal nouns first, internet second: always try this before any external/web search when an unfamiliar proper noun appears. Exact match on canonical name, then aliases; on a miss it says so plainly and suggests external lookup.",
+            "description": "Look up a named internal thing \u2014 a project, service, codename, decision, convention, runbook, person, event, or concept \u2014 in the shared knowledge base. Returns the wiki body plus a typed 1-hop neighborhood (predicate, peer, confidence). Names, aliases, persona names, and this agent's contextual titles resolve to the same canonical entity id. Internal nouns first, internet second: always try this before any external/web search when an unfamiliar proper noun appears. On a miss it says so plainly and suggests external lookup. Ambiguous names are not a miss \u2014 they return code ambiguous_reference and do not suggest the internet.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_lookup",
             "scope": "knowledge:read",
             "inputSchema": {
                 "properties": {
                     "query": {
-                        "description": "Canonical name or alias to look up \u2014 e.g. an internal project codename, service, person, or convention.",
+                        "description": "Canonical name, alias, persona name, this agent's contextual title, or the reserved word operator. Lookup returns the canonical entity; it does not change how you address anyone.",
+                        "type": "string"
+                    },
+                    "entry_id": {
+                        "description": "Stable entity id. When supplied with query, both must name the same canonical entity.",
+                        "type": "integer"
+                    },
+                    "ref": {
+                        "description": "Structured installation role. Prefer ref=operator over relying on a person named Operator.",
+                        "enum": [
+                            "operator"
+                        ],
                         "type": "string"
                     },
                     "history": {
-                        "description": "Also return the version history (who changed what, when).",
+                        "description": "Also return wiki version history and recent graph observations.",
                         "type": "boolean"
+                    },
+                    "hops": {
+                        "description": "Neighborhood depth. 1 (default) is the typed 1-hop links payload; 2 also returns a bounded walk.",
+                        "type": "integer"
+                    },
+                    "min_confidence": {
+                        "description": "Hide links below this milli-confidence (0\u20131000). Default 0 so weak links stay visible.",
+                        "type": "integer"
                     },
                     "name": {
                         "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
@@ -461,13 +563,13 @@
         },
         {
             "name": "knowledge_search",
-            "description": "Fuzzy-search the internal knowledge base when knowledge_lookup misses or you need broader context \u2014 matches canonical names, aliases, summaries, and entry state. Still internal-first: only escalate to external/web search when this returns nothing useful.",
+            "description": "Fuzzy-search the internal knowledge base when knowledge_lookup misses or you need broader context \u2014 matches canonical names, aliases, summaries, entry state, and this agent's contextual titles. Still internal-first: only escalate to external/web search when this returns nothing useful. An exact title match for this agent ranks the canonical person ahead of body-text hits. Other agents' titles are not searched.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_search",
             "scope": "knowledge:read",
             "inputSchema": {
                 "properties": {
                     "query": {
-                        "description": "Free-text search across names, aliases, summaries, and entry state.",
+                        "description": "Free-text search across names, aliases, this agent's contextual titles, summaries, and entry state.",
                         "type": "string"
                     },
                     "type": {
@@ -479,7 +581,8 @@
                             "convention",
                             "runbook",
                             "person",
-                            "concept"
+                            "concept",
+                            "event"
                         ],
                         "type": "string"
                     },
@@ -503,14 +606,18 @@
         },
         {
             "name": "knowledge_upsert",
-            "description": "Create or update a canonical knowledge entry \u2014 a project, service, decision, convention, runbook, person, or concept the install should know by name. Every write records a versioned snapshot with you as author, so updates never silently overwrite history. Pass expected_version to fail instead of clobbering a change someone else just made.",
+            "description": "Create or update a canonical knowledge entry \u2014 a project, service, decision, convention, runbook, person, or concept the install should know by name. `entry` is a target reference (canonical name, alias, persona name, or this agent's contextual title), not a rename: updating through an alias keeps the canonical name. Every write records a versioned snapshot with you as author. Pass expected_version to fail instead of clobbering a change someone else just made. Pass entry_id to pin the target; id and entry must agree.",
             "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_upsert",
             "scope": "knowledge:write",
             "inputSchema": {
                 "properties": {
                     "entry": {
-                        "description": "Canonical name of the knowledge entry \u2014 the lookup key, matched case-insensitively. (`name` stays reserved for your persona.)",
+                        "description": "Target reference \u2014 canonical name, alias, persona name, or this agent's contextual title. Not a rename; the canonical name stays. (`name` stays reserved for your persona.)",
                         "type": "string"
+                    },
+                    "entry_id": {
+                        "description": "Stable entity id. When supplied with entry, both must name the same canonical entity.",
+                        "type": "integer"
                     },
                     "type": {
                         "description": "Entry type. Required when creating.",
@@ -521,12 +628,13 @@
                             "convention",
                             "runbook",
                             "person",
-                            "concept"
+                            "concept",
+                            "event"
                         ],
                         "type": "string"
                     },
                     "aliases": {
-                        "description": "Other names this entry answers to.",
+                        "description": "Other global names this entry answers to (ordinary aliases). Does not add or remove scoped agent titles or persona/handle identifiers.",
                         "items": {
                             "type": "string"
                         },
@@ -572,6 +680,175 @@
             "outputSchema": null,
             "resultType": "json",
             "skill": "skills/melfina-knowledge-upsert/SKILL.md"
+        },
+        {
+            "name": "knowledge_connect",
+            "description": "Assert or retract a typed link between two internal knowledge entities, and attach the event data that justifies it. Use this to connect the dots \u2014 runs_on, depends_on, involves, owned_by \u2014 rather than stuffing names into knowledge_upsert related. Confidence rises when other agents independently assert the same link; the owner can lock a link permanent from the console. Missing endpoints are not created unless create_missing is true.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_connect",
+            "scope": "knowledge:write",
+            "inputSchema": {
+                "properties": {
+                    "from": {
+                        "description": "Canonical name, alias, persona name, or this agent's contextual title of the source entity.",
+                        "type": "string"
+                    },
+                    "to": {
+                        "description": "Canonical name, alias, persona name, or this agent's contextual title of the target entity.",
+                        "type": "string"
+                    },
+                    "from_id": {
+                        "description": "Stable source entity id. When supplied with from, both must name the same canonical entity.",
+                        "type": "integer"
+                    },
+                    "to_id": {
+                        "description": "Stable target entity id. When supplied with to, both must name the same canonical entity.",
+                        "type": "integer"
+                    },
+                    "predicate": {
+                        "description": "Typed meaning of the link. Inverse names (hosts, owns, \u2026) are stored as the canonical opposite with ends swapped.",
+                        "enum": [
+                            "related_to",
+                            "depends_on",
+                            "supports",
+                            "part_of",
+                            "has_part",
+                            "runs_on",
+                            "hosts",
+                            "owned_by",
+                            "owns",
+                            "uses",
+                            "used_by",
+                            "decided_in",
+                            "decides",
+                            "involves",
+                            "involved_in",
+                            "authored_by",
+                            "authored",
+                            "contradicts",
+                            "supersedes",
+                            "superseded_by"
+                        ],
+                        "type": "string"
+                    },
+                    "op": {
+                        "description": "assert (default) strengthens the link; retract records a disagreement. Permanent links reject agent retracts.",
+                        "enum": [
+                            "assert",
+                            "retract"
+                        ],
+                        "type": "string"
+                    },
+                    "note": {
+                        "description": "One-line why this connection exists.",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Structured event payload for this assertion (version, host, ticket id, \u2026).",
+                        "type": "object"
+                    },
+                    "source": {
+                        "description": "Provenance \u2014 doc, ticket, chat, deploy log.",
+                        "type": "string"
+                    },
+                    "occurred_at": {
+                        "description": "When the real-world event happened (ISO-8601). Distinct from when you recorded it.",
+                        "type": "string"
+                    },
+                    "event": {
+                        "description": "If set, also upsert a named event entity and involve both ends.",
+                        "type": "string"
+                    },
+                    "create_missing": {
+                        "description": "Create stub concept entities for unknown names. Default false so typos do not spawn nodes.",
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "from",
+                    "to",
+                    "predicate"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-connect/SKILL.md"
+        },
+        {
+            "name": "knowledge_add_alias",
+            "description": "Add another name for an existing knowledge entity. An alias is the same entity \u2014 a project, a place, or a person \u2014 not a separate presentation. Lookup of the alias returns that entity.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_add_alias",
+            "scope": "knowledge:write",
+            "inputSchema": {
+                "properties": {
+                    "entry": {
+                        "description": "Target entity: canonical name, alias, or this agent's contextual title.",
+                        "type": "string"
+                    },
+                    "entry_id": {
+                        "description": "Stable entity id. When supplied with entry, both must name the same entity.",
+                        "type": "integer"
+                    },
+                    "alias": {
+                        "description": "Another name for this same entity.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entry",
+                    "alias"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-add-alias/SKILL.md"
+        },
+        {
+            "name": "knowledge_link_persona",
+            "description": "Link two person entries as the same living being with different presentations. Lookup keeps each entry's own name and reports that they are equal. This does not rename either person.",
+            "endpoint": "https://melfina.dragonshorn.cloud/api/tools/knowledge_link_persona",
+            "scope": "knowledge:write",
+            "inputSchema": {
+                "properties": {
+                    "person": {
+                        "description": "One person entry.",
+                        "type": "string"
+                    },
+                    "person_id": {
+                        "description": "Stable id for person. When supplied, it must agree with person.",
+                        "type": "integer"
+                    },
+                    "persona": {
+                        "description": "The other person entry \u2014 a different presentation of the same being.",
+                        "type": "string"
+                    },
+                    "persona_id": {
+                        "description": "Stable id for persona. When supplied, it must agree with persona.",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Your agent name \u2014 your persona on this install. Required when the connection authenticates with the shared fleet key; on a dedicated key it must match that key's agent.",
+                        "type": "string"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "person",
+                    "persona"
+                ]
+            },
+            "outputSchema": null,
+            "resultType": "json",
+            "skill": "skills/melfina-knowledge-link-persona/SKILL.md"
         }
     ]
 }
